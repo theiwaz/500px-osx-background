@@ -15,7 +15,7 @@
 ONLY_LANDSCAPE_MODE=1
 
 # specify feed source type; available options: user, search, popular, upcoming, fresh, editors
-SRC_TYPE="user"
+SRC_TYPE="popular"
 
 # needles
 NEEDLE_TAG="<img"
@@ -32,8 +32,8 @@ fi
 
 # images from a search
 if [ "$SRC_TYPE" == "search" ]; then
-	SEARCH_QUERY="cat"
-	CATEGORIES="Animals"
+	SEARCH_QUERY="yosemite"
+	CATEGORIES="Lanscapes"
 	SORT="newest"
 	FEED="https://500px.com/search.rss?q=${SEARCH_QUERY}&type=photos&categories=${CATEGORIES}&sort=${SORT}"
 	NEEDLE_TAG="<media:content"
@@ -65,10 +65,10 @@ fi
 # --- --- --- --- ---
 
 # getting feed from 500px
-curl -s "$FEED"|grep "$NEEDLE_TAG"|awk -F$NEEDLE_SRC_ATTR'=\"' '{print $2}'|awk -F'"' '{print $1}' > /tmp/500px_list.txt
+curl -s "$FEED"|grep "$NEEDLE_TAG"|awk -F$NEEDLE_SRC_ATTR'=\"' '{print $2}'|awk -F'"' '{print $1}' > ~/Downloads/500px-Backgrounds/500px_list.txt
 
 # getting elements count
-COUNT=`cat /tmp/500px_list.txt|wc -l|awk '{print $1}'`
+COUNT=`cat ~/Downloads/500px-Backgrounds/500px_list.txt|wc -l|awk '{print $1}'`
 
 # cycling until a "good" image if found
 FOUND=0
@@ -80,14 +80,14 @@ for i in $(seq 1 $COUNT); do
 	RND=`expr $RANDOM % $COUNT`
 
 	# getting the image url from index
-	IMG=`cat /tmp/500px_list.txt|tail -n +$RND|head -n 1`
+	IMG=`cat ~/Downloads/500px-Backgrounds/500px_list.txt|tail -n +$RND|head -n 1`
 
 	# getting image data from url
-	curl -s "$IMG" -o /tmp/500px_img.png
+	curl -s "$IMG" -o ~/Downloads/500px-Backgrounds/500px_img.png
 
 	# getting image dimensions
-	IMG_W=`sips -g pixelWidth /tmp/500px_img.png|tail -n 1|awk '{print $2}'`
-	IMG_H=`sips -g pixelHeight /tmp/500px_img.png|tail -n 1|awk '{print $2}'`
+	IMG_W=`sips -g pixelWidth ~/Downloads/500px-Backgrounds/500px_img.png|tail -n 1|awk '{print $2}'`
+	IMG_H=`sips -g pixelHeight ~/Downloads/500px-Backgrounds/500px_img.png|tail -n 1|awk '{print $2}'`
 	echo "Image size is ${IMG_W} x ${IMG_H}"
 
 	# checking if image is "good"
@@ -99,9 +99,20 @@ done
 
 if [ $FOUND ]; then
 	# setting image as background
-	echo "Setting downloaded image as background"
-	osascript -e 'tell application "Finder" to set desktop picture to POSIX file "/tmp/500px_img.png"'
+	#echo "Setting downloaded image as background"
+	#osascript -e 'tell application "Finder" to set desktop picture to POSIX file "~/Downloads/500px-Backgrounds/500px_img.png"'
+
+osascript -e 'tell application "System Events"
+    set desktopCount to count of desktops
+    repeat with desktopNumber from 1 to desktopCount
+        tell desktop desktopNumber
+            set picture to "~/Downloads/500px-Backgrounds/500px_img.png"
+        end tell
+    end repeat
+end tell'
+
 	killall Dock
+
 else
 	echo "No image found"
 fi
